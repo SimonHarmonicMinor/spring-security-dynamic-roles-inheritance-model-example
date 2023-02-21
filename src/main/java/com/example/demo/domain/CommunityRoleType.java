@@ -1,11 +1,8 @@
 package com.example.demo.domain;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static java.util.Collections.unmodifiableSet;
 
 public enum CommunityRoleType implements Role {
     ADMIN, MODERATOR;
@@ -20,10 +17,5 @@ public enum CommunityRoleType implements Role {
     @Override
     public boolean includes(Role role) {
         return this.equals(role) || children.stream().anyMatch(r -> r.includes(role));
-    }
-
-    @Override
-    public Set<Role> children() {
-        return unmodifiableSet(children);
     }
 }
