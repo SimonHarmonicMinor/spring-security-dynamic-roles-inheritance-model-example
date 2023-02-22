@@ -5,4 +5,4 @@ CREATE TABLE post_role
     post_id BIGINT REFERENCES post (id)  NOT NULL,
     type    VARCHAR(50)                  NOT NULL,
     UNIQUE (user_id, post_id, type)
-)
+);

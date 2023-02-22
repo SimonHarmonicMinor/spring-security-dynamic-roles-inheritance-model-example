@@ -5,4 +5,4 @@ CREATE TABLE community_role
     community_id BIGINT REFERENCES community (id) NOT NULL,
     type         VARCHAR(50)                      NOT NULL,
     UNIQUE (user_id, community_id, type)
-)
+);
