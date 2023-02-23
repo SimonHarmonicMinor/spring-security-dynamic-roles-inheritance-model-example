@@ -26,7 +26,7 @@ public class Post {
     private String name;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "community_id")
+    @JoinColumn(name = "community_id", updatable = false)
     private Community community;
 
     public static Post newPost(String name, Community community) {
