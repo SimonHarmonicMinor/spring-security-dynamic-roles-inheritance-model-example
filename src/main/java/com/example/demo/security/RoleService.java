@@ -8,6 +8,7 @@ import com.example.demo.repository.PostRoleRepository;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
@@ -19,6 +20,7 @@ public class RoleService {
     private final CommunityRoleRepository communityRoleRepository;
     private final PostRoleRepository postRoleRepository;
 
+    @Transactional
     public boolean hasAnyRoleByCommunityId(Authentication authentication, Long communityId, Role... roles) {
         final Long userId = ((PlainAuthentication) authentication).getPrincipal();
         final Set<CommunityRoleType> communityRoleTypes =
@@ -38,6 +40,7 @@ public class RoleService {
         return false;
     }
 
+    @Transactional
     public boolean hasAnyRoleByPostId(Authentication authentication, Long postId, Role... roles) {
         final Long userId = ((PlainAuthentication) authentication).getPrincipal();
         final Set<CommunityRoleType> communityRoleTypes =
