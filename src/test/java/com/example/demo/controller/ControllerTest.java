@@ -3,7 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.controller.dto.CommunityResponse;
 import com.example.demo.controller.dto.PostResponse;
 import com.example.demo.domain.User;
-import com.example.demo.repository.CommunityRepository;
 import com.example.demo.repository.UserRepository;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -48,8 +47,6 @@ class ControllerTest {
     private TestRestTemplate rest;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private CommunityRepository communityRepository;
 
     @BeforeEach
     void beforeEach() {
