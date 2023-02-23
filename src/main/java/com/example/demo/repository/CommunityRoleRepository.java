@@ -14,4 +14,12 @@ public interface CommunityRoleRepository extends JpaRepository<CommunityRole, Lo
         WHERE cr.user.id = :userId AND cr.community.id = :communityId
         """)
     Set<CommunityRoleType> findRoleTypesByUserIdAndCommunityId(Long userId, Long communityId);
+
+    @Query("""
+        SELECT cr.type FROM CommunityRole cr
+        JOIN cr.community c
+        JOIN c.post p
+        WHERE cr.user.id = :userId AND p.id = :postId
+        """)
+    Set<CommunityRoleType> findRoleTypesByUserIdAndPostId(Long userId, Long postId);
 }

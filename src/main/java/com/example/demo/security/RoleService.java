@@ -39,6 +39,21 @@ public class RoleService {
     }
 
     public boolean hasAnyRoleByPostId(Authentication authentication, Long postId, Role... roles) {
-
+        final Long userId = ((PlainAuthentication) authentication).getPrincipal();
+        final Set<CommunityRoleType> communityRoleTypes =
+            communityRoleRepository.findRoleTypesByUserIdAndPostId(userId, postId);
+        for (Role role : roles) {
+            if (communityRoleTypes.stream().anyMatch(communityRoleType -> communityRoleType.includes(role))) {
+                return true;
+            }
+        }
+        final Set<PostRoleType> postRoleTypes =
+            postRoleRepository.findRoleTypesByUserIdAndPostId(userId, postId);
+        for (Role role : roles) {
+            if (postRoleTypes.stream().anyMatch(postRoleType -> postRoleType.includes(role))) {
+                return true;
+            }
+        }
+        return false;
     }
 }
