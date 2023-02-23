@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.controller.dto.CommunityResponse;
+import com.example.demo.controller.dto.PostResponse;
 import com.example.demo.domain.User;
+import com.example.demo.repository.CommunityRepository;
 import com.example.demo.repository.UserRepository;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +22,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -44,6 +48,8 @@ class ControllerTest {
     private TestRestTemplate rest;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private CommunityRepository communityRepository;
 
     @BeforeEach
     void beforeEach() {
@@ -61,7 +67,7 @@ class ControllerTest {
                 "/api/community?name={name}",
                 null,
                 CommunityResponse.class,
-                Map.of("name", "post_name")
+                Map.of("name", "community_name")
             );
 
         assertEquals(UNAUTHORIZED, communityCreatedResponse.getStatusCode());
@@ -77,7 +83,56 @@ class ControllerTest {
                     "/api/community?name={name}",
                     null,
                     CommunityResponse.class,
-                    Map.of("name", "post_name")
+                    Map.of("name", "community_name")
                 );
+        assertTrue(communityCreatedResponse.getStatusCode().is2xxSuccessful());
+        final var communityId = communityCreatedResponse.getBody().id();
+
+        final var postCreatedResponse =
+            rest.withBasicAuth("john", "password")
+                .postForEntity(
+                    "/api/community/{communityId}/post?name={name}",
+                    null,
+                    PostResponse.class,
+                    Map.of("communityId", communityId, "name", "post_name")
+                );
+        assertTrue(postCreatedResponse.getStatusCode().is2xxSuccessful());
+    }
+
+    @Test
+    void shouldReturn403IfUserHasNoAccessToViewThePost() {
+        userRepository.save(User.newUser("john"));
+        userRepository.save(User.newUser("bob"));
+
+        final var communityCreatedResponse =
+            rest.withBasicAuth("john", "password")
+                .postForEntity(
+                    "/api/community?name={name}",
+                    null,
+                    CommunityResponse.class,
+                    Map.of("name", "community_name")
+                );
+        assertTrue(communityCreatedResponse.getStatusCode().is2xxSuccessful());
+        final var communityId = communityCreatedResponse.getBody().id();
+
+        final var postCreatedResponse =
+            rest.withBasicAuth("john", "password")
+                .postForEntity(
+                    "/api/community/{communityId}/post?name={name}",
+                    null,
+                    PostResponse.class,
+                    Map.of("communityId", communityId, "name", "post_name")
+                );
+        assertTrue(postCreatedResponse.getStatusCode().is2xxSuccessful());
+        final var postId = postCreatedResponse.getBody().id();
+
+        final var postViewResponse =
+            rest.withBasicAuth("bob", "password")
+                .getForEntity(
+                    "/api/post/{postId}",
+                    PostResponse.class,
+                    Map.of("postId", postId)
+                );
+        assertEquals(FORBIDDEN, postViewResponse.getStatusCode());
     }
 }
