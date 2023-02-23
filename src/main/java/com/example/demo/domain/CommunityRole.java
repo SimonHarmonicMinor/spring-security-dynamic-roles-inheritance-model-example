@@ -4,6 +4,7 @@ import org.hibernate.Hibernate;
 
 import java.util.Objects;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -29,14 +30,15 @@ public class CommunityRole {
     private Long id;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", updatable = false)
     private User user;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "community_id")
+    @JoinColumn(name = "community_id", updatable = false)
     private Community community;
 
     @Enumerated(STRING)
+    @Column(updatable = false)
     private CommunityRoleType type;
 
     @Override
