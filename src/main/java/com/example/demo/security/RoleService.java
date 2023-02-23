@@ -6,7 +6,7 @@ import com.example.demo.domain.Role;
 import com.example.demo.repository.CommunityRoleRepository;
 import com.example.demo.repository.PostRoleRepository;
 
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +21,8 @@ public class RoleService {
     private final PostRoleRepository postRoleRepository;
 
     @Transactional
-    public boolean hasAnyRoleByCommunityId(Authentication authentication, Long communityId, Role... roles) {
-        final Long userId = ((PlainAuthentication) authentication).getPrincipal();
+    public boolean hasAnyRoleByCommunityId(Long communityId, Role... roles) {
+        final Long userId = getCurrentAuthentication().getPrincipal();
         final Set<CommunityRoleType> communityRoleTypes =
             communityRoleRepository.findRoleTypesByUserIdAndCommunityId(userId, communityId);
         for (Role role : roles) {
@@ -41,8 +41,8 @@ public class RoleService {
     }
 
     @Transactional
-    public boolean hasAnyRoleByPostId(Authentication authentication, Long postId, Role... roles) {
-        final Long userId = ((PlainAuthentication) authentication).getPrincipal();
+    public boolean hasAnyRoleByPostId(Long postId, Role... roles) {
+        final Long userId = getCurrentAuthentication().getPrincipal();
         final Set<CommunityRoleType> communityRoleTypes =
             communityRoleRepository.findRoleTypesByUserIdAndPostId(userId, postId);
         for (Role role : roles) {
@@ -58,5 +58,9 @@ public class RoleService {
             }
         }
         return false;
+    }
+
+    private static PlainAuthentication getCurrentAuthentication() {
+        return (PlainAuthentication) SecurityContextHolder.getContext().getAuthentication();
     }
 }

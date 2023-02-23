@@ -30,19 +30,19 @@ public class Controller {
     }
 
     @PostMapping("/community/{communityId}/post")
-    @PreAuthorize("@RoleService.hasAnyRoleByCommunityId(authentication, #communityId, @CommunityRole.ADMIN)")
+    @PreAuthorize("@RoleService.hasAnyRoleByCommunityId(#communityId, @CommunityRole.ADMIN)")
     public PostResponse createPost(@PathVariable Long communityId, @RequestParam String name) {
         return postService.createPost(communityId, name);
     }
 
     @PutMapping("/post/{postId}")
-    @PreAuthorize("@RoleService.hasAnyRoleByPostId(authentication, #postId, @PostRole.EDITOR)")
+    @PreAuthorize("@RoleService.hasAnyRoleByPostId(#postId, @PostRole.EDITOR)")
     public void updatePost(@PathVariable Long postId, @RequestParam String name) {
         postService.updatePost(postId, name);
     }
 
     @GetMapping("/post/{postId}")
-    @PreAuthorize("@RoleService.hasAnyRoleByPostId(authentication, #postId, @PostRole.VIEWER)")
+    @PreAuthorize("@RoleService.hasAnyRoleByPostId(#postId, @PostRole.VIEWER)")
     public PostResponse getPost(@PathVariable Long postId) {
         return postService.getPostById(postId);
     }
