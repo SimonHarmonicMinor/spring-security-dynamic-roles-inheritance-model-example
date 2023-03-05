@@ -76,7 +76,7 @@ class DocsTest extends AbstractControllerTest {
             </html>
             """.replace("{docs}", docs.toString());
 
-        writeFileToBuildFolder("security-endpoint-docs.html", html);
+        writeFileToBuildFolder("index.html", html);
     }
 
     private void writeFileToBuildFolder(String filename, String content) throws Exception {
