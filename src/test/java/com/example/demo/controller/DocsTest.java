@@ -58,12 +58,14 @@ class DocsTest extends AbstractControllerTest {
                 <meta charset="UTF8">
                 <style>
                     body, table {
+                        font-family: "JetBrains Mono";
                         font-size: 20px;
                     }
                     table, th, td {
                       border: 1px solid black;
                     }
                 </style>
+                <link href='https://fonts.googleapis.com/css?family=JetBrains Mono' rel='stylesheet'>
             </head>
             <body>
                 <div>
