@@ -31,12 +31,10 @@ jobs:
           distribution: 'temurin'
       - name: Build with Gradle
         run: ./gradlew build
-      - name: LS files (debug)
-        run: ls -a
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: ${{ github.workspace }}/build/classes/test/
+          path: build/classes/java/test/
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
