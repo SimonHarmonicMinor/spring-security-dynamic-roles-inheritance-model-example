@@ -12,7 +12,9 @@ on:
     branches: [ "master" ]
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build-and-deploy:
@@ -31,12 +33,10 @@ jobs:
         uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
         with:
           arguments: build
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: build/classes/test
+          path: ./build/classes/test
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
