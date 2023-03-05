@@ -30,7 +30,8 @@ jobs:
       uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
       with:
         arguments: build
-    - name: Deploy 🚀
-      uses: JamesIves/github-pages-deploy-action@v4
+    - name: Deploy to GH Pages 🚀
+      uses: peaceiris/actions-gh-pages@v3
       with:
-        folder: build/classes/test
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build/classes/test
