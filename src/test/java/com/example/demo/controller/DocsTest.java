@@ -6,6 +6,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,10 +14,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+
+import lombok.With;
 
 import static java.util.Optional.ofNullable;
 
@@ -26,31 +32,23 @@ class DocsTest extends AbstractControllerTest {
 
     @Test
     void generateDocs() throws Exception {
-        StringBuilder docs = new StringBuilder(300);
+        final var controllers = new ArrayList<ControllerInfo>();
+
         for (String controllerName : applicationContext.getBeanNamesForAnnotation(RestController.class)) {
             final var controllerBean = applicationContext.getBean(controllerName);
             final var baseApiPath = getApiPath(AnnotationUtils.findAnnotation(controllerBean.getClass(), RequestMapping.class));
-            docs.append("<b>").append(controllerName).append("</b><br><table>");
-            for (Method controllerMethod : controllerBean.getClass().getMethods()) {
-                final var methodInfoOpt = getApiPathFromControllerMethod(controllerMethod);
-                if (methodInfoOpt.isEmpty()) {
-                    continue;
-                }
-                final var methodInfo = methodInfoOpt.orElseThrow();
-                docs.append("<tr><td>").append(methodInfo.method())
-                    .append("</td><td>")
-                    .append(baseApiPath).append(methodInfo.path())
-                    .append("</td><td>")
-                    .append(
-                        ofNullable(AnnotationUtils.findAnnotation(controllerMethod, PreAuthorize.class))
-                            .map(PreAuthorize::value)
-                            .orElse("No authorization required")
-                    )
-                    .append("</td><td>").append(controllerMethod.getName())
-                    .append("</td></tr>");
+            final var controllerSecurityInfo = new ControllerInfo(
+                StringUtils.capitalize(controllerName),
+                new ArrayList<>()
+            );
+            for (Method method : controllerBean.getClass().getMethods()) {
+                getMethodInfo(method)
+                    .map(m -> m.withPrefixedApiPath(baseApiPath))
+                    .ifPresent(m -> controllerSecurityInfo.methods().add(m));
             }
-            docs.append("</table>----------------------------------<br>");
+            controllers.add(controllerSecurityInfo);
         }
+
 
         final var html = """
             <html>
@@ -74,9 +72,28 @@ class DocsTest extends AbstractControllerTest {
                 </div>
             </body>
             </html>
-            """.replace("{docs}", docs.toString());
+            """.replace("{docs}", toHtml(controllers));
 
         writeFileToBuildFolder("index.html", html);
+    }
+
+    @With
+    private record ControllerInfo(
+        String name,
+        List<MethodInfo> methods
+    ) {
+    }
+
+    @With
+    private record MethodInfo(
+        String httpMethod,
+        String apiPath,
+        String security,
+        String functionName
+    ) {
+        public MethodInfo withPrefixedApiPath(String prefixedApiPath) {
+            return withApiPath(prefixedApiPath + this.apiPath);
+        }
     }
 
     private void writeFileToBuildFolder(String filename, String content) throws Exception {
@@ -88,23 +105,23 @@ class DocsTest extends AbstractControllerTest {
         );
     }
 
-    private static Optional<ControllerMethodInfo> getApiPathFromControllerMethod(Method controllerMethod) {
-        return ofNullable(AnnotationUtils.findAnnotation(controllerMethod, GetMapping.class))
-                   .map(a -> new ControllerMethodInfo("GET", getApiPath(a.value())))
-                   .or(() ->
-                           ofNullable(AnnotationUtils.findAnnotation(controllerMethod, PostMapping.class))
-                               .map(a -> new ControllerMethodInfo("POST", getApiPath(a.value())))
-                   )
-                   .or(
-                       () ->
-                           ofNullable(AnnotationUtils.findAnnotation(controllerMethod, DeleteMapping.class))
-                               .map(a -> new ControllerMethodInfo("DELETE", getApiPath(a.value())))
-                   )
-                   .or(
-                       () ->
-                           ofNullable(AnnotationUtils.findAnnotation(controllerMethod, PutMapping.class))
-                               .map(a -> new ControllerMethodInfo("PUT", getApiPath(a.value())))
-                   );
+    private static Optional<MethodInfo> getMethodInfo(Method method) {
+        return Optional.<Annotation>ofNullable(AnnotationUtils.findAnnotation(method, GetMapping.class))
+                   .or(() -> ofNullable(AnnotationUtils.findAnnotation(method, PostMapping.class)))
+                   .or(() -> ofNullable(AnnotationUtils.findAnnotation(method, DeleteMapping.class)))
+                   .or(() -> ofNullable(AnnotationUtils.findAnnotation(method, PutMapping.class)))
+                   .map(annotation -> AnnotationUtils.getAnnotationAttributes(method, annotation))
+                   .map(attributes -> new MethodInfo(
+                       attributes.annotationType()
+                           .getSimpleName()
+                           .replace("Mapping", "")
+                           .toUpperCase(),
+                       getApiPath(attributes.getStringArray("value")),
+                       ofNullable(AnnotationUtils.findAnnotation(method, PreAuthorize.class))
+                           .map(PreAuthorize::value)
+                           .orElse(""),
+                       method.getName()
+                   ));
     }
 
     private static String getApiPath(@Nullable RequestMapping requestMapping) {
@@ -117,9 +134,29 @@ class DocsTest extends AbstractControllerTest {
     private static String getApiPath(@Nullable String... array) {
         return ofNullable(array)
                    .map(arr -> arr.length > 0 ? arr[0] : null)
-                   .orElse(" ");
+                   .orElse("");
     }
 
-    private record ControllerMethodInfo(String method, String path) {
+    private static String toHtml(List<ControllerInfo> controllers) {
+        StringBuilder docs = new StringBuilder();
+        for (ControllerInfo controller : controllers) {
+            docs.append("<b>")
+                .append(controller.name())
+                .append("</b>")
+                .append("<br>")
+                .append("<table>");
+
+            for (MethodInfo method : controller.methods()) {
+                docs.append("<tr>")
+                    .append("<td>").append(method.httpMethod()).append("</td>")
+                    .append("<td>").append(method.apiPath()).append("</td>")
+                    .append("<td>").append(method.security()).append("</td>")
+                    .append("<td>").append(method.functionName()).append("</td>")
+                    .append("</tr>");
+            }
+            docs.append("</table>")
+                .append("----------------------------------<br>");
+        }
+        return docs.toString();
     }
 }
