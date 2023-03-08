@@ -28,14 +28,14 @@ import static java.util.Optional.ofNullable;
 
 class DocsTest extends AbstractControllerTest {
     @Autowired
-    private ApplicationContext applicationContext;
+    private ApplicationContext context;
 
     @Test
     void generateDocs() throws Exception {
         final var controllers = new ArrayList<ControllerInfo>();
 
-        for (String controllerName : applicationContext.getBeanNamesForAnnotation(RestController.class)) {
-            final var controllerBean = applicationContext.getBean(controllerName);
+        for (String controllerName : context.getBeanNamesForAnnotation(RestController.class)) {
+            final var controllerBean = context.getBean(controllerName);
             final var baseApiPath = getApiPath(AnnotationUtils.findAnnotation(controllerBean.getClass(), RequestMapping.class));
             final var controllerSecurityInfo = new ControllerInfo(
                 StringUtils.capitalize(controllerName),
