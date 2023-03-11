@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.rauschig.jarchivelib.ArchiverFactory;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -37,13 +38,15 @@ class SchemaSpyTest extends AbstractControllerTest {
         "-debug"
     );
     schemaSpy.execInContainer("tar", "-czvf", "/output/output.tar.gz", "/output");
+    final var buildFolderPath =
+        Path.of(getClass().getResource("/").toURI()).toAbsolutePath();
     schemaSpy.copyFileFromContainer(
         "/output/output.tar.gz",
-        Path.of(getClass().getResource("/").toURI())
-            .resolve("output.tar.gz")
-            .toAbsolutePath()
-            .toString()
+        buildFolderPath.resolve("output.tar.gz").toString()
     );
     schemaSpy.stop();
+
+    final var archiver = ArchiverFactory.createArchiver("tar", "gz");
+    archiver.extract(buildFolderPath.resolve("output.tar.gz").toFile(), buildFolderPath.toFile());
   }
 }
