@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
@@ -47,6 +48,33 @@ class SchemaSpyTest extends AbstractControllerTest {
     schemaSpy.stop();
 
     final var archiver = ArchiverFactory.createArchiver("tar", "gz");
-    archiver.extract(buildFolderPath.resolve("output.tar.gz").toFile(), buildFolderPath.toFile());
+    archiver.extract(buildFolderPath.resolve("output.tar.gz").toFile(),
+        buildFolderPath.toFile());
+
+    Files.writeString(
+        buildFolderPath.resolve("index.html"),
+        """
+            <html>
+            <head>
+                <meta charset="UTF8">
+                <style>
+                    body, table {
+                        font-family: "JetBrains Mono";
+                        font-size: 20px;
+                    }
+                    table, th, td {
+                      border: 1px solid black;
+                    }
+                </style>
+                <link href='https://fonts.googleapis.com/css?family=JetBrains Mono' rel='stylesheet'>
+            </head>
+            <body>
+                <div>
+                    <h3><a href="security-docs">Endpoints role checking</a></h3>
+                    <h3><a href="output">Schema Spy</a></h3>
+                </div>
+            </body>
+            </html>"""
+    );
   }
 }
