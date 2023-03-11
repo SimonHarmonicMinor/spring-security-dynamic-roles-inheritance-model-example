@@ -32,6 +32,7 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	testImplementation 'org.rauschig:jarchivelib:0.7.1'
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	implementation "org.flywaydb:flyway-core:9.8.1"
