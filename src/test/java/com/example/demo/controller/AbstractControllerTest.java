@@ -19,6 +19,7 @@ class AbstractControllerTest {
   @Container
   public static final PostgreSQLContainer<?> POSTGRES =
       new PostgreSQLContainer<>("postgres:13.5")
+          .withNetworkAliases("postgres")
           .withNetwork(NETWORK);
 
   @DynamicPropertySource
