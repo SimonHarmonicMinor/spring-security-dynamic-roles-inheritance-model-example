@@ -1,9 +1,8 @@
 package com.example.demo.controller;
 
+import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.jdbc.JdbcTestUtils;
-
-import java.util.List;
 
 public class DatabaseUtil {
     private static final List<String> TABLES = List.of(
